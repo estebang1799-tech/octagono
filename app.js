@@ -1,8 +1,10 @@
 import { num, norm, normCode, compute, fromOFF, unpack, OFF_FIELDS } from "./logic.js";
 
-const VERSION = "1.2.0";
+const VERSION = "1.3.0";
 const SDK_URL = "https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@1.4.0/+esm";
-const MODEL = "claude-opus-5-5";
+// Haiku 5.5: the user chose the fastest, cheapest model for reading labels (~USD 0.001 per label).
+const MODEL = "claude-haiku-5-5";
+const LABEL_MAX_PX = 1200; // photo size sent to the API; enough to read a nutrition table, fewer image tokens
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -219,10 +221,10 @@ async function readLabel(blobs, signal) {
   };
   let resp;
   try {
-    // Preferred request: schema-constrained JSON, with server-side fallback if the model declines.
-    resp = await client.beta.messages.create({
-      model: MODEL, max_tokens: 16000,
-      betas: ["server-side-fallback-2026-07-01"], fallbacks: "default",
+    // Preferred request: schema-constrained JSON at low effort. max_tokens leaves room for
+    // any adaptive thinking plus the ~600-token JSON answer.
+    resp = await client.messages.create({
+      model: MODEL, max_tokens: 4000,
       output_config: { effort: "low", format: { type: "json_schema", schema: LABEL_SCHEMA } },
       messages: [{ role: "user", content: [...images, { type: "text", text: LABEL_PROMPT }] }],
     }, { signal });
@@ -232,7 +234,7 @@ async function readLabel(blobs, signal) {
     // Simpler request if the API rejected one of the options above: JSON described in the prompt instead.
     try {
       resp = await client.messages.create({
-        model: MODEL, max_tokens: 16000, output_config: { effort: "low" },
+        model: MODEL, max_tokens: 4000, output_config: { effort: "low" },
         messages: [{ role: "user", content: [...images, { type: "text", text: LABEL_PROMPT +
           "\n\nReply with only one JSON object with exactly these keys: " + Object.keys(LABEL_SCHEMA.properties).join(", ") + "." }] }],
       }, { signal });
@@ -265,7 +267,7 @@ function captureLabel(host, { code = null, title } = {}) {
     const hasKey = !!apiKey();
     host.innerHTML = `<div class="cap">
       <div><b>${esc(title || "Producto nuevo")}</b>${code ? ` <span class="code small muted">${esc(code)}</span>` : ""}</div>
-      <p class="small muted" style="margin:0">${code ? "No está en Open Food Facts. " : ""}Toma la tabla nutrimental y la lista de ingredientes. Solo se hace una vez por producto.</p>
+      <p class="small muted" style="margin:0">${code ? "No está en Open Food Facts. " : ""}Toma <b>una foto</b> donde se vean la tabla nutrimental y los ingredientes; si están en lados distintos, usa dos. Solo se hace una vez por producto.</p>
       ${hasKey ? `<div class="slots"></div>
       <div class="row"><button class="btn y go" style="flex:1" disabled>Analizar</button><button class="btn line cancel">Cancelar</button></div>`
       : `<div class="msg">Para leer etiquetas con fotos, agrega tu clave de la API de Claude en <button class="link to-set">Ajustes</button>. También puedes capturar los datos a mano.</div>
@@ -290,7 +292,7 @@ function captureLabel(host, { code = null, title } = {}) {
       const pk = e.target.closest("[data-pick]"), rm = e.target.closest("[data-rm]");
       if (rm) { const i = +rm.dataset.rm; URL.revokeObjectURL(photos[i].url); photos[i] = null; draw(); }
       if (pk) { const i = +pk.dataset.pick, f = await filePick(); if (!f) return;
-        const im = await loadImg(f).catch(() => null); const blob = im ? await shrink(im, 1568) : f;
+        const im = await loadImg(f).catch(() => null); const blob = im ? await shrink(im, LABEL_MAX_PX) : f;
         photos[i] = { blob, url: URL.createObjectURL(blob) }; draw(); }
     };
     q(".go").onclick = async () => {
