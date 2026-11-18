@@ -1,6 +1,6 @@
 import { num, norm, normCode, compute, fromOFF, unpack, OFF_FIELDS } from "./logic.js";
 
-const VERSION = "1.0.0";
+const VERSION = "1.0.1";
 const SDK_URL = "https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@1.4.0/+esm";
 const MODEL = "claude-opus-5-5";
 
@@ -467,10 +467,11 @@ $("#cmp-cols").addEventListener("input", e => { const s = e.target.closest("[dat
 $("#cmp-cols").addEventListener("click", async e => {
   const cl = e.target.closest("[data-clear]"); if (cl) { cmp[+cl.dataset.clear] = null; cmpQuery[+cl.dataset.clear] = ""; renderCmp(); return; }
   const hit = e.target.closest("[data-hits] button[data-code]");
-  if (hit) { const i = +hit.parentElement.dataset.hits;
+  if (hit) { const i = +hit.parentElement.dataset.hits, list = hit.parentElement;
     const h = hit.dataset.id && history.find(x => x.id === hit.dataset.id);
+    if (!h) list.innerHTML = `<button disabled><span class="muted">Cargando…</span></button>`;
     const f = h ? { product: h.product } : await findAny(hit.dataset.code);
-    if (f) { cmp[i] = { product: f.product }; cmpQuery[i] = ""; renderCmp(); } return; }
+    if (f) { cmp[i] = { product: f.product }; cmpQuery[i] = ""; } renderCmp(); return; }
   const s = e.target.closest("[data-scan]"); if (!s) return;
   const i = +s.dataset.scan, host = $("#cmp-cap");
   const code = await openScanner(); if (!code) return;
@@ -561,7 +562,11 @@ current = { example: true, product: { nombre: "Galletas con chispas de chocolate
   consejo: "Galletas integrales de avena sin sellos, o fruta con un puñado de nueces." } };
 renderResult();
 loadHistory().then(() => { if (history.length && current?.example) { current = null; renderResult(); } });
-loadIndex();
+loadIndex().then(() => {
+  // download the rest of the product base in the background so it works offline in the store
+  if (navigator.connection?.saveData) return;
+  setTimeout(async () => { for (let k = 0; k < 10; k++) await shardFor(String(k)).catch(() => {}); }, 3000);
+});
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 // Test hook: lets automated checks run a lookup without a camera.
 window.__octagono = { handleCode, history: () => history };

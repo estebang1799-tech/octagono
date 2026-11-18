@@ -3,7 +3,7 @@
 const { chromium, devices } = require("playwright");
 const path = require("path");
 const out = process.argv[2] || ".";
-const URL = "http://127.0.0.1:8765/";
+const URL = process.env.APP_URL || "http://127.0.0.1:8765/";
 const ok = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) process.exitCode = 1; };
 
 (async () => {
@@ -53,8 +53,10 @@ const ok = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) process
   await p.click("#tab-cmp");
   const firstWord = await p.evaluate(async () => (await (await fetch("db/index.json")).json()).rows.find(r => r[3] != null)[1].split(" ")[0]);
   await p.fill('[data-q="0"]', firstWord); await p.click('[data-hits="0"] button[data-code]');
+  await p.waitForSelector('.cmp-col [data-clear="0"]', { timeout: 15000 }).catch(() => {});
   const secondWord = await p.evaluate(async () => { const rows = (await (await fetch("db/index.json")).json()).rows.filter(r => r[3] != null); return rows[rows.length - 1][1].split(" ")[0]; });
   await p.fill('[data-q="1"]', secondWord); await p.click('[data-hits="1"] button[data-code]');
+  await p.waitForSelector("#cmp-table tr:nth-child(5)", { timeout: 15000 }).catch(() => {});
   ok((await p.$$("#cmp-table tr")).length > 5, "compare table shows two products");
   await p.screenshot({ path: path.join(out, "3-comparar.png"), fullPage: true });
 
