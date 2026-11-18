@@ -1,6 +1,6 @@
 import { num, norm, normCode, compute, fromOFF, unpack, OFF_FIELDS } from "./logic.js";
 
-const VERSION = "1.1.0";
+const VERSION = "1.2.0";
 const SDK_URL = "https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@1.4.0/+esm";
 const MODEL = "claude-opus-5-5";
 
@@ -209,8 +209,17 @@ async function readLabel(blobs, signal) {
   try { Anthropic = (await sdkPromise).default; } catch { sdkPromise = null; throw { code: "offline" }; }
   const client = new Anthropic({ apiKey: key, dangerouslyAllowBrowser: true });
   const images = await Promise.all(blobs.map(async b => ({ type: "image", source: { type: "base64", media_type: "image/jpeg", data: await blobToB64(b) } })));
+  const mapError = e => {
+    if (e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError) return { code: "bad_key" };
+    if (e instanceof Anthropic.RateLimitError) return { code: "rate_limited" };
+    if (e instanceof Anthropic.APIUserAbortError || signal?.aborted) return { code: "cancelled" };
+    if (e instanceof Anthropic.BadRequestError) return { code: "bad_request", message: e.message };
+    if (e instanceof Anthropic.APIConnectionError) return { code: "offline" };
+    return { code: "api", message: e?.message };
+  };
   let resp;
   try {
+    // Preferred request: schema-constrained JSON, with server-side fallback if the model declines.
     resp = await client.beta.messages.create({
       model: MODEL, max_tokens: 16000,
       betas: ["server-side-fallback-2026-07-01"], fallbacks: "default",
@@ -218,16 +227,28 @@ async function readLabel(blobs, signal) {
       messages: [{ role: "user", content: [...images, { type: "text", text: LABEL_PROMPT }] }],
     }, { signal });
   } catch (e) {
-    if (e instanceof Anthropic.AuthenticationError || e instanceof Anthropic.PermissionDeniedError) throw { code: "bad_key" };
-    if (e instanceof Anthropic.RateLimitError) throw { code: "rate_limited" };
-    if (e instanceof Anthropic.APIUserAbortError || signal?.aborted) throw { code: "cancelled" };
-    if (e instanceof Anthropic.BadRequestError) throw { code: "bad_request", message: e.message };
-    if (e instanceof Anthropic.APIConnectionError) throw { code: "offline" };
-    throw { code: "api", message: e?.message };
+    const err = mapError(e);
+    if (err.code !== "bad_request") throw err;
+    // Simpler request if the API rejected one of the options above: JSON described in the prompt instead.
+    try {
+      resp = await client.messages.create({
+        model: MODEL, max_tokens: 16000, output_config: { effort: "low" },
+        messages: [{ role: "user", content: [...images, { type: "text", text: LABEL_PROMPT +
+          "\n\nReply with only one JSON object with exactly these keys: " + Object.keys(LABEL_SCHEMA.properties).join(", ") + "." }] }],
+      }, { signal });
+    } catch (e2) { const err2 = mapError(e2); if (err2.code === "bad_request") err2.message = `${err.message} / ${err2.message}`; throw err2; }
   }
   if (resp.stop_reason === "refusal") throw { code: "refused" };
   const text = resp.content.filter(b => b.type === "text").map(b => b.text).join("");
-  try { return JSON.parse(text); } catch { throw { code: "invalid_json" }; }
+  const parsed = parseJSONLoose(text);
+  if (!parsed) throw { code: "invalid_json" };
+  return parsed;
+}
+function parseJSONLoose(text) {
+  try { return JSON.parse(text); } catch {}
+  const a = text.indexOf("{"), b = text.lastIndexOf("}");
+  if (a >= 0 && b > a) { try { return JSON.parse(text.slice(a, b + 1)); } catch {} }
+  return null;
 }
 const blobToB64 = b => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(",")[1]); r.onerror = rej; r.readAsDataURL(b); });
 const shrink = (im, max) => new Promise(r => toCanvas(im, max).toBlob(r, "image/jpeg", 0.85));
@@ -571,6 +592,22 @@ $("#key-save").onclick = () => {
   if (!v) { store.set("octagono.apikey", null); renderKeyState(); return; }
   if (!v.startsWith("sk-ant-")) { $("#key-state").textContent = "Esa clave no parece de Anthropic; debe empezar con sk-ant-."; return; }
   store.set("octagono.apikey", v); renderKeyState();
+};
+$("#key-test").onclick = async () => {
+  const st = $("#key-test-state"), key = apiKey();
+  if (!key) { st.textContent = "Primero guarda tu clave."; return; }
+  st.textContent = "Probando…";
+  try {
+    sdkPromise ??= import(SDK_URL);
+    const Anthropic = (await sdkPromise).default;
+    const client = new Anthropic({ apiKey: key, dangerouslyAllowBrowser: true });
+    try { await client.models.retrieve(MODEL); st.textContent = "✓ La clave funciona. Ya puedes leer etiquetas con fotos."; }
+    catch (e) {
+      st.textContent = e instanceof Anthropic.AuthenticationError ? "La clave no es válida. Cópiala de nuevo desde platform.claude.com."
+        : e instanceof Anthropic.PermissionDeniedError ? "La clave no tiene permiso para este modelo."
+        : e instanceof Anthropic.APIConnectionError ? "Sin conexión con la API. Revisa tu internet." : "Error: " + (e?.message || "desconocido");
+    }
+  } catch { sdkPromise = null; st.textContent = "No se pudo cargar el conector de la API. Revisa tu internet."; }
 };
 $("#export").onclick = () => {
   const blob = new Blob([JSON.stringify({ app: "octagono", version: 1, exported: new Date().toISOString(), products: history })], { type: "application/json" });

@@ -13,7 +13,8 @@ const ok = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) process
   const p = await ctx.newPage();
   const errors = [];
   p.on("pageerror", e => errors.push(e.message));
-  p.on("console", m => { if (m.type() === "error") errors.push(m.text()); });
+  // the fake-key checks below cause expected 401 responses; anything else is a real error
+  p.on("console", m => { if (m.type() === "error" && !/status of 401/.test(m.text())) errors.push(m.text()); });
 
   await p.goto(URL);
   await p.waitForFunction(() => /productos/.test(document.querySelector("#dbinfo").textContent), null, { timeout: 10000 });
@@ -73,6 +74,25 @@ const ok = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) process
   await p.click('#alert-cats [data-cat="bebidas"]');
   ok((await p.$$(".aitem")).length === 3, "category filter works");
   await p.screenshot({ path: path.join(out, "7-alertas.png"), fullPage: false });
+
+  // 5c. AI label reading path with a fake key: SDK loads, request reaches the API, 401 is reported clearly
+  await p.click("#open-settings");
+  await p.fill("#key-in", "sk-ant-api03-fake-key-for-testing"); await p.click("#key-save");
+  await p.click("#key-test");
+  await p.waitForFunction(() => !/Probando/.test(document.querySelector("#key-test-state").textContent), null, { timeout: 30000 }).catch(() => {});
+  const keyMsg = await p.textContent("#key-test-state");
+  ok(/no es válida/.test(keyMsg), `key test reaches the API (${keyMsg.trim()})`);
+  await p.click("#tab-scan");
+  await p.evaluate(() => { window.__octagono.handleCode("0000000000024"); });
+  await p.waitForSelector(".cap .slots", { timeout: 15000 });
+  const [chooser] = await Promise.all([p.waitForEvent("filechooser"), p.click('.cap [data-pick="0"]')]);
+  await chooser.setFiles(path.join(__dirname, "..", "icons", "icon-512.png"));
+  await p.click(".cap .go");
+  await p.waitForFunction(() => { const s = document.querySelector(".cap .st"); return s && !/Leyendo/.test(s.textContent) && s.textContent; }, null, { timeout: 45000 }).catch(() => {});
+  const capMsg = (await p.textContent(".cap .st").catch(() => "")) || "";
+  ok(/no es válida/.test(capMsg), `label reading reaches the API (${capMsg.trim()})`);
+  await p.click(".cap .cancel");
+  await p.evaluate(() => localStorage.removeItem("octagono.apikey"));
 
   // 6. camera overlay opens and closes
   await p.click("#tab-scan"); await p.click("#scan-btn");
