@@ -1,6 +1,6 @@
 import { num, norm, normCode, compute, fromOFF, unpack, OFF_FIELDS } from "./logic.js";
 
-const VERSION = "1.3.0";
+const VERSION = "1.3.1";
 const SDK_URL = "https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@1.4.0/+esm";
 // Haiku 5.5: the user chose the fastest, cheapest model for reading labels (~USD 0.001 per label).
 const MODEL = "claude-haiku-5-5";
