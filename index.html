@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Octágono</title>
+<meta name="description" content="Escanea productos y ve sus sellos NOM-051, aditivos y una calificación.">
+<meta name="theme-color" content="#ffd60a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Octágono">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="band"><div class="in">
+  <h1>Octágono</h1>
+  <button class="iconbtn" id="open-settings" aria-label="Ajustes">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><rect x="14" y="5" width="4" height="4"/><rect x="8" y="15" width="4" height="4"/></svg>
+  </button>
+</div></header>
+
+<main><div class="in">
+  <section id="view-scan">
+    <button class="btn y big" id="scan-btn">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 7V3h4M17 3h4v4M21 17v4h-4M7 21H3v-4M7 8v8M10 8v8M13 8v8M17 8v8"/></svg>
+      Escanear código
+    </button>
+    <form id="code-form" class="row" autocomplete="off">
+      <input class="field" id="code-in" inputmode="numeric" pattern="[0-9]*" placeholder="o escribe el código" aria-label="Código de barras">
+      <button class="btn line" type="submit">Buscar</button>
+    </form>
+    <p class="small muted" style="margin:0"><span id="dbinfo">Cargando base de productos…</span> <button class="link small" id="nocode">¿Sin código? Analizar etiqueta</button></p>
+    <div id="scan-msg"></div>
+    <div id="scan-cap"></div>
+    <div id="result"></div>
+  </section>
+
+  <section id="view-cmp" hidden>
+    <p class="small muted" style="margin:0">Escanea o busca dos productos para ver cuál conviene.</p>
+    <div class="cmp-cols" id="cmp-cols"></div>
+    <div id="cmp-cap"></div>
+    <div id="cmp-table"></div>
+  </section>
+
+  <section id="view-hist" hidden>
+    <div class="stats" id="stats"></div>
+    <input class="field" id="q" type="search" placeholder="Buscar en tu historial" aria-label="Buscar en historial">
+    <div id="hist"></div>
+  </section>
+
+  <section id="view-set" hidden>
+    <h2 class="h2">Ajustes</h2>
+    <div class="block">
+      <label class="label" for="key-in">Clave de la API de Claude</label>
+      <p class="small muted">Se usa solo para leer etiquetas de productos que no están en la base. Se guarda únicamente en este teléfono. Cada etiqueta cuesta unos centavos de dólar.</p>
+      <div class="row"><input class="field" id="key-in" type="password" autocomplete="off" placeholder="sk-ant-…"><button class="btn line" id="key-save">Guardar</button></div>
+      <p class="small" id="key-state"></p>
+    </div>
+    <div class="block">
+      <span class="label">Tu historial</span>
+      <p class="small muted" id="hist-size"></p>
+      <div class="row"><button class="btn line" id="export">Exportar respaldo</button><button class="btn line" id="import">Importar respaldo</button></div>
+      <input type="file" id="import-in" accept="application/json,.json" hidden>
+      <p class="small" id="backup-state"></p>
+    </div>
+    <div class="block">
+      <span class="label">Base de productos</span>
+      <p class="small muted" id="db-detail"></p>
+      <p class="small muted">Si un producto no está en la base, se busca en vivo en Open Food Facts cuando hay internet.</p>
+    </div>
+    <div class="block">
+      <span class="label">Instalar en tu teléfono</span>
+      <p class="small muted"><b>iPhone:</b> en Safari, toca Compartir y luego “Agregar a inicio”.<br><b>Android:</b> en Chrome, toca el menú ⋮ y luego “Instalar app”.</p>
+      <button class="btn y" id="install" hidden>Instalar Octágono</button>
+    </div>
+    <p class="foot">Calificación propia: sellos con los criterios de la fase 3 de la NOM-051 por 100 g o 100 ml, menos puntos por aditivos de riesgo. No es dictamen oficial ni consejo médico. Datos de productos: Open Food Facts (licencia ODbL), aportados por voluntarios; pueden tener errores. <span id="ver"></span></p>
+  </section>
+</div></main>
+
+<nav class="tabbar" role="tablist">
+  <button role="tab" id="tab-scan" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 7V3h4M17 3h4v4M21 17v4h-4M7 21H3v-4M7 8v8M10 8v8M13 8v8M17 8v8"/></svg>Escanear</button>
+  <button role="tab" id="tab-cmp" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4h6v16H4zM14 9h6v11h-6z"/></svg>Comparar</button>
+  <button role="tab" id="tab-hist" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Historial</button>
+</nav>
+
+<div id="cam" class="cam" hidden>
+  <video id="cam-video" playsinline muted></video>
+  <div class="cam-frame" aria-hidden="true"><i></i></div>
+  <div class="cam-bar">
+    <span id="cam-msg">Apunta al código de barras</span>
+    <div class="row">
+      <button class="btn line inv" id="cam-torch" hidden>Linterna</button>
+      <button class="btn y" id="cam-close">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="file-in" accept="image/*" capture="environment" hidden>
+<script src="vendor/zxing.min.js"></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>
