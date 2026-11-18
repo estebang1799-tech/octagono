@@ -1,6 +1,6 @@
 import { num, norm, normCode, compute, fromOFF, unpack, OFF_FIELDS } from "./logic.js";
 
-const VERSION = "1.0.1";
+const VERSION = "1.1.0";
 const SDK_URL = "https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@1.4.0/+esm";
 const MODEL = "claude-opus-5-5";
 
@@ -315,16 +315,68 @@ async function showProduct(c) {
   if (!c.example && !c.docId && c.product.fuente === "off") c.docId = await save(c.product, c.thumb, null);
   renderResult();
 }
+/* =========================================================
+   COFEPRIS sanitary alerts
+   ========================================================= */
+let ALERTS = [], ALERT_BASE = "", ALERT_DATE = "";
+const words = s => " " + norm(s).replace(/[^a-z0-9]+/g, " ").trim() + " ";
+async function loadAlerts() {
+  try {
+    const j = await (await fetch("db/cofepris.json")).json();
+    ALERT_BASE = j.base; ALERT_DATE = j.revisado;
+    ALERTS = j.alertas.map(a => ({ ...a, url: j.base + a.f, keys: (a.match || []).map(m => words(m)) })).sort((a, b) => b.fecha.localeCompare(a.fecha));
+  } catch { ALERTS = []; }
+  if (current && !current.example) renderResult();
+  if (!$("#view-alert").hidden) renderAlerts();
+}
+function alertsFor(p) {
+  if (!ALERTS.length || !p) return [];
+  const text = words([p.nombre, p.marca].filter(Boolean).join(" ")), code = normCode(p.codigo_barras);
+  return ALERTS.filter(a => a.tipo !== "regularizada" && (a.keys.some(k => text.includes(k)) || (code && (a.upc || []).some(u => normCode(u) === code))));
+}
+const fdate = d => new Date(d + "T12:00:00").toLocaleDateString("es-MX", { day: "numeric", month: "short", year: "numeric" });
+const tipoTxt = { retiro: "Retiro del mercado", falsificado: "Falsificado", robado: "Robado", "sin registro": "Sin registro / publicidad engañosa", regularizada: "Regularizada" };
+function warnHTML(a) {
+  return `<div class="warn" role="alert"><span class="k">Alerta COFEPRIS · ${esc(tipoTxt[a.tipo] || a.tipo)} · ${fdate(a.fecha)}</span>
+    <b class="t">${esc(a.titulo)}</b><p>${esc(a.detalle)}</p>
+    <p class="lots"><b>${a.lotes.length ? "Revisa el lote de tu empaque. Lotes afectados:" : "Aplica a cualquier lote."}</b> ${esc(a.lotes.join(", "))}</p>
+    <a href="${esc(a.url)}" target="_blank" rel="noopener" class="small">Ver alerta oficial (PDF)</a></div>`;
+}
+let alertCat = "";
+function renderAlerts() {
+  const q = words($("#alert-q").value).trim();
+  const list = ALERTS.filter(a => (!alertCat || a.cat === alertCat) && (!q || words([a.titulo, a.detalle, ...(a.match || []), ...(a.lotes || []), ...(a.upc || [])].join(" ")).includes(" " + q)));
+  const mine = history.map(h => ({ h, al: alertsFor(h.product) })).filter(x => x.al.length);
+  $("#alert-mine").innerHTML = mine.length
+    ? `<div class="warn"><span class="k">En tu historial</span><b class="t">${mine.length} ${mine.length === 1 ? "producto tiene" : "productos tienen"} alerta</b>
+        ${mine.map(x => `<p>• <b>${esc(x.h.product.nombre)}</b>: ${esc(x.al[0].titulo)}</p>`).join("")}</div>`
+    : history.length ? `<div class="msg small">Ningún producto de tu historial tiene alertas.</div>` : "";
+  $("#alert-list").innerHTML = list.length ? list.map(a => `<div class="aitem">
+      <div class="meta"><span>${fdate(a.fecha)}</span><span class="pill ${esc(a.tipo.replace(/\s+/g, "-"))}">${esc(tipoTxt[a.tipo] || a.tipo)}</span><span>${esc(a.cat)}</span></div>
+      <b>${esc(a.titulo)}</b><p>${esc(a.detalle)}</p>
+      ${a.lotes.length ? `<details><summary class="small">Lotes (${a.lotes.length})</summary><p class="lots">${esc(a.lotes.join(", "))}</p></details>` : ""}
+      <a href="${esc(a.url)}" target="_blank" rel="noopener">Ver alerta oficial (PDF)</a></div>`).join("")
+    : `<p class="small muted">${ALERTS.length ? "No hay alertas que coincidan." : "No se pudieron cargar las alertas."}</p>`;
+  $("#alert-src").textContent = ALERTS.length ? `${ALERTS.length} alertas de gob.mx/cofepris, revisadas el ${fdate(ALERT_DATE)}.` : "";
+}
+$("#alert-cats").addEventListener("click", e => {
+  const b = e.target.closest("[data-cat]"); if (!b) return; alertCat = b.dataset.cat;
+  $("#alert-cats").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b)); renderAlerts();
+});
+$("#alert-q").addEventListener("input", renderAlerts);
+
 function renderResult() {
   const box = $("#result");
   if (!current) { box.innerHTML = ""; return; }
   const p = current.product, r = compute(p), [vw, vc] = verdict(r.score), unit = p.tipo === "liquido" ? "100 ml" : "100 g", ed = current.editing;
   const band = r.score == null ? -1 : r.score >= 75 ? 3 : r.score >= 50 ? 2 : r.score >= 25 ? 1 : 0;
-  const alts = ed || current.example ? [] : alternatives(p);
+  const alts = ed || current.example || r.incomplete ? [] : alternatives(p);
   const src = current.example ? "" : p.fuente === "off" ? "Datos de Open Food Facts." : p.fuente === "etiqueta" ? "Datos leídos de tu etiqueta." : "Datos capturados por ti.";
+  const warns = current.example ? [] : alertsFor(p);
   box.innerHTML = `<article class="res" aria-live="polite">
     <hr>
     ${current.example ? `<div class="msg small">Ejemplo. Escanea un producto para ver el tuyo.</div>` : ""}
+    ${warns.map(warnHTML).join("")}
     ${ed && current.manual ? `<div style="display:flex;flex-direction:column;gap:6px"><label class="label" for="in-name">Nombre</label><input id="in-name" class="field" value="${esc(p.nombre || "")}" placeholder="Ej. Galletas de avena">
       <label class="label" for="in-ingr">Ingredientes (opcional)</label><textarea id="in-ingr" class="field" rows="3">${esc(p.ingredientes || "")}</textarea></div>` : ""}
     <div class="res-head">
@@ -495,7 +547,7 @@ function renderHistory() {
   $("#stats").innerHTML = `<div><b>${n}</b><span>productos</span></div><div><b>${avg ?? "—"}</b><span>promedio</span></div><div><b>${sug == null ? "—" : sug + "%"}</b><span>con exceso de azúcares</span></div>`;
   $("#hist").innerHTML = items.length ? items.map(h => { const [, c] = verdict(h.score);
     return `<button class="hitem" data-id="${esc(h.id)}">${h.thumb ? `<img src="${esc(h.thumb)}" alt="">` : `<span class="ph">${(h.seals || []).length ? `<svg viewBox="0 0 100 100" width="26" height="26" aria-hidden="true"><polygon points="29,1 71,1 99,29 99,71 71,99 29,99 1,71 1,29" fill="var(--fg)"/></svg>` : ""}</span>`}
-      <span class="t"><b>${esc(h.product?.nombre || "Producto")}</b><span>${esc(h.product?.marca || "")}${h.product?.marca ? " · " : ""}${(h.seals || []).length} sellos · ${new Date(h.ts).toLocaleDateString("es-MX", { day: "numeric", month: "short" })}</span></span>
+      <span class="t"><b>${esc(h.product?.nombre || "Producto")}${alertsFor(h.product).length ? `<span class="flag">ALERTA</span>` : ""}</b><span>${esc(h.product?.marca || "")}${h.product?.marca ? " · " : ""}${(h.seals || []).length} sellos · ${new Date(h.ts).toLocaleDateString("es-MX", { day: "numeric", month: "short" })}</span></span>
       <span class="s" style="color:${c}">${h.score ?? "?"}</span></button>`; }).join("")
     : `<p class="muted small">${n ? "Nada coincide." : "Aún no hay productos. Todo lo que escanees se guarda aquí, en tu teléfono."}</p>`;
   $("#hist-size").textContent = `${n} productos guardados en este teléfono.`;
@@ -547,12 +599,12 @@ $("#install").onclick = async () => { if (!installEvt) return; installEvt.prompt
    Tabs & boot
    ========================================================= */
 function showTab(t) {
-  for (const k of ["scan", "cmp", "hist", "set"]) { $("#view-" + k).hidden = k !== t; const tb = $("#tab-" + k); if (tb) tb.setAttribute("aria-selected", k === t); }
-  if (t === "hist") renderHistory(); if (t === "cmp") renderCmp(); if (t === "set") { renderKeyState(); renderHistory(); }
+  for (const k of ["scan", "cmp", "alert", "hist", "set"]) { $("#view-" + k).hidden = k !== t; const tb = $("#tab-" + k); if (tb) tb.setAttribute("aria-selected", k === t); }
+  if (t === "hist") renderHistory(); if (t === "cmp") renderCmp(); if (t === "alert") renderAlerts(); if (t === "set") { renderKeyState(); renderHistory(); }
 }
-for (const k of ["scan", "cmp", "hist"]) $("#tab-" + k).onclick = () => showTab(k);
+for (const k of ["scan", "cmp", "alert", "hist"]) $("#tab-" + k).onclick = () => showTab(k);
 $("#open-settings").onclick = () => showTab("set");
-function refreshViews() { if (!$("#view-hist").hidden || !$("#view-set").hidden) renderHistory(); if (!$("#view-cmp").hidden) renderCmp(); }
+function refreshViews() { if (!$("#view-hist").hidden || !$("#view-set").hidden) renderHistory(); if (!$("#view-cmp").hidden) renderCmp(); if (!$("#view-alert").hidden) renderAlerts(); }
 $("#ver").textContent = "Versión " + VERSION + ".";
 
 current = { example: true, product: { nombre: "Galletas con chispas de chocolate", marca: "Producto de ejemplo", contenido: "200 g", tipo: "solido",
@@ -561,6 +613,7 @@ current = { example: true, product: { nombre: "Galletas con chispas de chocolate
   aditivos: [], edulcorantes: false, cafeina: false, tiene_azucar_anadido: true, tiene_sodio_anadido: true,
   consejo: "Galletas integrales de avena sin sellos, o fruta con un puñado de nueces." } };
 renderResult();
+loadAlerts();
 loadHistory().then(() => { if (history.length && current?.example) { current = null; renderResult(); } });
 loadIndex().then(() => {
   // download the rest of the product base in the background so it works offline in the store

@@ -1,0 +1,651 @@
+{
+ "_about": "Alertas sanitarias de COFEPRIS (alimentos, bebidas alcohólicas y suplementos alimenticios), resumidas a mano a partir de los PDF oficiales. 'match' son frases que deben aparecer completas en el nombre o la marca del producto para mostrar el aviso; 'upc' son códigos de barras exactos; 'lotes' vacío significa que aplica a cualquier lote.",
+ "base": "https://www.gob.mx/cms/uploads/attachment/file/",
+ "revisado": "2026-11-18",
+ "alertas": [
+  {
+   "fecha": "2026-08-06",
+   "cat": "alimentos",
+   "tipo": "falsificado",
+   "titulo": "Frisolac GOLD Comfort Multio 800 g adulterado",
+   "detalle": "Latas con datos no reconocidos por el fabricante; se venden en plataformas en línea y redes sociales.",
+   "match": [
+    "frisolac gold comfort"
+   ],
+   "lotes": [
+    "D0SJJ",
+    "ID97ST6",
+    "4345D6Z"
+   ],
+   "f": "1096540/Alerta_Sanitaria_Frisolac_06082026.pdf"
+  },
+  {
+   "fecha": "2026-07-13",
+   "cat": "bebidas",
+   "tipo": "falsificado",
+   "titulo": "Tequila Gran Centenario reposado 950 ml falsificado",
+   "detalle": "Producto falsificado y adulterado vendido en plataformas en línea.",
+   "match": [
+    "gran centenario reposado"
+   ],
+   "lotes": [
+    "L 061 24"
+   ],
+   "f": "1090069/Alerta_Sanitaria_TEQUILA_reposado_13072026.pdf"
+  },
+  {
+   "fecha": "2026-06-02",
+   "cat": "bebidas",
+   "tipo": "falsificado",
+   "titulo": "Don Julio 70 Añejo Cristalino y Buchanan's Deluxe 12 años falsificados",
+   "detalle": "Botellas falsificadas: Don Julio 70 sin número de lote y Buchanan's 12 con lote no reconocido por Diageo.",
+   "match": [
+    "don julio 70",
+    "buchanan s deluxe",
+    "buchanans deluxe"
+   ],
+   "lotes": [
+    "Don Julio 70 sin lote",
+    "L5089CE00100054481"
+   ],
+   "f": "1081905/Alerta_Sanitaria_TEQUILA_A_EJO_y_BUCHANAN_S_02062026.pdf"
+  },
+  {
+   "fecha": "2026-05-25",
+   "cat": "suplementos",
+   "tipo": "falsificado",
+   "titulo": "Suplementos HYM y DIABHYM falsificados",
+   "detalle": "Usan sin permiso la marca Olnatura, que no los fabrica desde 2020. No usar en ninguna presentación ni lote.",
+   "match": [
+    "hym",
+    "diabhym"
+   ],
+   "lotes": [],
+   "f": "1080402/Alerta_Sanitaria_HYM_y_DIABHYM_25052026.pdf"
+  },
+  {
+   "fecha": "2026-02-13",
+   "cat": "alimentos",
+   "tipo": "retiro",
+   "titulo": "Retiro de fórmulas infantiles ALULA GOLD Premium (actualización)",
+   "detalle": "Posible contaminación con cereulida, toxina de Bacillus cereus. Atención al consumidor Sanulac: 800 493 0836.",
+   "match": [
+    "alula gold"
+   ],
+   "lotes": [
+    "8000003178",
+    "8000003179",
+    "8000003285",
+    "8000003358",
+    "8000003300",
+    "8000003378",
+    "8000003379",
+    "8000003226",
+    "8000003269",
+    "8000003286",
+    "8000003351",
+    "8000003235",
+    "8000003345",
+    "8000003181",
+    "8000003287",
+    "8000003352",
+    "8000003194",
+    "8000003195",
+    "8000003196",
+    "8000003197",
+    "8000003198",
+    "8000003271",
+    "8000003308",
+    "8000003347",
+    "8000003348",
+    "8000003349",
+    "8000003350"
+   ],
+   "f": "1057061/Act._Alerta_Sanitaria__Alula_13022026.pdf"
+  },
+  {
+   "fecha": "2026-01-19",
+   "cat": "suplementos",
+   "tipo": "robado",
+   "titulo": "Robo de Bellafem maternal 600 mg",
+   "detalle": "Lotes robados en un centro de distribución; ya no se garantiza su seguridad.",
+   "match": [
+    "bellafem"
+   ],
+   "lotes": [
+    "FEBME173",
+    "FEBME174"
+   ],
+   "f": "1049091/Alerta_sanitaria__Robo_de_suplementos__19012026.pdf"
+  },
+  {
+   "fecha": "2026-01-07",
+   "cat": "alimentos",
+   "tipo": "retiro",
+   "titulo": "Retiro de NAN Alfamino y Alfamino 400 g",
+   "detalle": "Probable contaminación con toxina de Bacillus cereus en un ingrediente. Contacto: nestle.com.mx/contactanos.",
+   "match": [
+    "alfamino"
+   ],
+   "lotes": [
+    "52030017Y2",
+    "52040017Y1",
+    "51060017Y2",
+    "51070017Y1"
+   ],
+   "f": "1047052/Alerta_Sanitaria__Nestl__07012026.pdf"
+  },
+  {
+   "fecha": "2025-12-15",
+   "cat": "alimentos",
+   "tipo": "falsificado",
+   "titulo": "Similac Isomil 1 y Similac Total Comfort Etapa 1 falsificados",
+   "detalle": "Lotes no reconocidos por Abbott, vendidos en comercio electrónico y mercado informal.",
+   "match": [
+    "similac isomil",
+    "similac total comfort"
+   ],
+   "lotes": [
+    "37055NNR",
+    "00274TVE",
+    "444242QUO1"
+   ],
+   "f": "1042976/Act_Alerta_Sanitaria_Abbott_Laboratories_15122025.pdf"
+  },
+  {
+   "fecha": "2025-12-11",
+   "cat": "alimentos",
+   "tipo": "falsificado",
+   "titulo": "PediaSure chocolate alterado y falsificado",
+   "detalle": "Lata 400 g en polvo y bote 237 ml sabor chocolate vendidos en línea por distribuidores no reconocidos.",
+   "match": [
+    "pediasure"
+   ],
+   "lotes": [
+    "1183605",
+    "29967LL"
+   ],
+   "f": "1042561/Alerta_Sanitaria_Prediasure_liquido_y_en_polvo__11122025.pdf"
+  },
+  {
+   "fecha": "2025-03-18",
+   "cat": "suplementos",
+   "tipo": "robado",
+   "titulo": "Robo de suplementos Microbiot (Laboratorios Columbia)",
+   "detalle": "Microbiot, Microbiot Pediátrico y Microbiot Fit robados en carretera; no comprar en tianguis ni vía pública.",
+   "match": [
+    "microbiot"
+   ],
+   "lotes": [
+    "6463",
+    "24E007",
+    "24A0006",
+    "24D0069",
+    "24D0068"
+   ],
+   "f": "984311/Alerta_sanitaria_de_Robo_a_Laboratorios_Columbia_18032025.pdf"
+  },
+  {
+   "fecha": "2025-03-18",
+   "cat": "suplementos",
+   "tipo": "robado",
+   "titulo": "Robo de jarabes Girafkids (Biofarma Natural)",
+   "detalle": "Lotes destinados a Estados Unidos, robados durante su traslado; no autorizados en México.",
+   "match": [
+    "girafkids"
+   ],
+   "lotes": [
+    "24Y43836",
+    "24Y43837",
+    "24J44716"
+   ],
+   "f": "984310/Alerta_Sanitaria_Suplementos_alimenticios_18032025.pdf"
+  },
+  {
+   "fecha": "2023-08-18",
+   "cat": "alimentos",
+   "tipo": "retiro",
+   "titulo": "Helados Soft Serve On The Go con Listeria",
+   "detalle": "Retiro en EE. UU. por Listeria monocytogenes; algunos se distribuyeron en México.",
+   "match": [
+    "soft serve on the go"
+   ],
+   "upc": [
+    "091404151139",
+    "091404151283",
+    "091404151290",
+    "091404151313",
+    "091404151337",
+    "091404152853"
+   ],
+   "lotes": [],
+   "f": "850686/Alerta_Sanitaria_Helados_Sotf_Serve_On_The_Go_18082023.pdf"
+  },
+  {
+   "fecha": "2022-04-08",
+   "cat": "alimentos",
+   "tipo": "retiro",
+   "titulo": "Kinder Mini Eggs: posible Salmonella",
+   "detalle": "Retiro mundial de Ferrero; lotes con caducidad de julio de 2022.",
+   "match": [
+    "kinder mini eggs"
+   ],
+   "lotes": [
+    "L291R03UMV",
+    "L292R03UMW",
+    "L298R03UNC",
+    "L299R03UNC"
+   ],
+   "f": "716139/Alerta_Kinder.pdf"
+  },
+  {
+   "fecha": "2022-02-23",
+   "cat": "alimentos",
+   "tipo": "retiro",
+   "titulo": "Retiro de Similac Fortificador, Alimentum y Elecare",
+   "detalle": "Retiro de Abbott Nutrition (EE. UU.); en México los lotes con código Z2.",
+   "match": [
+    "alimentum",
+    "elecare",
+    "fortificador de leche humana"
+   ],
+   "lotes": [
+    "22294Z200",
+    "22295Z200",
+    "26785Z200",
+    "27871Z203",
+    "27938Z260",
+    "27982Z200",
+    "27983Z200",
+    "29258Z200",
+    "29284Z261",
+    "31541Z200",
+    "32416Z200",
+    "32429Z200",
+    "33753Z200",
+    "34890Z200",
+    "35014Z200"
+   ],
+   "f": "705479/Alerta_Abbott_F_rmulas_Abbott_23022022_VF.pdf"
+  },
+  {
+   "fecha": "2021-10-28",
+   "cat": "suplementos",
+   "tipo": "sin registro",
+   "titulo": "ADUL-T o \"tabletas negras\"",
+   "detalle": "Se anuncia para la disfunción eréctil sin registro sanitario ni estudios de seguridad.",
+   "match": [
+    "adul t",
+    "tabletas negras"
+   ],
+   "lotes": [],
+   "f": "678074/Alerta_sanitaria_ADUL-T_281020212__1_.pdf"
+  },
+  {
+   "fecha": "2020-05-25",
+   "cat": "suplementos",
+   "tipo": "sin registro",
+   "titulo": "Productos Novirsa: Adulta, Reduction, Lipofast, Redux y otros",
+   "detalle": "Publicidad engañosa y productos sin autorización sanitaria de la empresa Novirsa.",
+   "match": [
+    "novirsa",
+    "lipofast",
+    "detenol",
+    "lipolit",
+    "cell master",
+    "sos protek"
+   ],
+   "lotes": [],
+   "f": "553923/Actualicaci_n_de_Alerta__Sanitaria_Novirsa_25052020.pdf"
+  },
+  {
+   "fecha": "2017-10-27",
+   "cat": "suplementos",
+   "tipo": "sin registro",
+   "titulo": "Ajo Estrella (cápsulas)",
+   "detalle": "Se le atribuyen falsamente propiedades para colesterol, artritis, presión y próstata.",
+   "match": [
+    "ajo estrella"
+   ],
+   "lotes": [],
+   "f": "268582/37_Alerta_Sanitaria_Ajo_Estrella.pdf"
+  },
+  {
+   "fecha": "2017-10-16",
+   "cat": "suplementos",
+   "tipo": "sin registro",
+   "titulo": "Productos con Garcinia cambogia que se anuncian en internet",
+   "detalle": "Advertencia general sobre productos para bajar de peso con Garcinia cambogia vendidos en internet.",
+   "match": [],
+   "lotes": [],
+   "f": "264486/Alerta_Sanitaria_Garnia_Cambogia_16102017.pdf"
+  },
+  {
+   "fecha": "2017-08-30",
+   "cat": "suplementos",
+   "tipo": "sin registro",
+   "titulo": "Productos PHN Proher Natura",
+   "detalle": "Publicidad ilegal con supuestas propiedades terapéuticas.",
+   "match": [
+    "proher natura"
+   ],
+   "lotes": [],
+   "f": "252473/36_Alerta__Sanitaria_PHN_proher_natura_30082017.pdf"
+  },
+  {
+   "fecha": "2017-08-10",
+   "cat": "suplementos",
+   "tipo": "sin registro",
+   "titulo": "Capslim (actualización)",
+   "detalle": "Se publicita para bajar de peso sin sustento.",
+   "match": [
+    "capslim"
+   ],
+   "lotes": [],
+   "f": "248123/ALERTA_CAPSLIM_Actualizaci_n_2017-08-10__2_.pdf"
+  },
+  {
+   "fecha": "2017-08-09",
+   "cat": "suplementos",
+   "tipo": "sin registro",
+   "titulo": "Glucoajo C2 (cápsulas y pomada)",
+   "detalle": "Se anuncia como desintoxicante y regulador de colesterol sin sustento.",
+   "match": [
+    "glucoajo"
+   ],
+   "lotes": [],
+   "f": "247147/Alerta_Sanitaria_GLUCOAJO_C2_09082017.pdf"
+  },
+  {
+   "fecha": "2017-07-31",
+   "cat": "suplementos",
+   "tipo": "sin registro",
+   "titulo": "Productos TDA Máss: Reducaps, Reduté, Redugel",
+   "detalle": "Publicidad ilegal para bajar de peso \"sin dieta y sin rebote\".",
+   "match": [
+    "reducaps",
+    "redute",
+    "redugel",
+    "tda mass"
+   ],
+   "lotes": [],
+   "f": "244448/ALERTA_tda_mass.pdf"
+  },
+  {
+   "fecha": "2017-07-26",
+   "cat": "suplementos",
+   "tipo": "sin registro",
+   "titulo": "Meizitang",
+   "detalle": "Se anuncia ilegalmente para perder peso y reducir tallas.",
+   "match": [
+    "meizitang"
+   ],
+   "lotes": [],
+   "f": "242873/32_Alerta_sanitaria_MEIZITANG_20170727.pdf"
+  },
+  {
+   "fecha": "2017-07-11",
+   "cat": "suplementos",
+   "tipo": "sin registro",
+   "titulo": "Productos Demograss y Skingrass",
+   "detalle": "Productos para bajar de peso con publicidad ilegal.",
+   "match": [
+    "demograss",
+    "skingrass"
+   ],
+   "lotes": [],
+   "f": "240370/29_Alerta_Sanitaria_DEMOGRASS_20170712.pdf"
+  },
+  {
+   "fecha": "2017-06-30",
+   "cat": "suplementos",
+   "tipo": "sin registro",
+   "titulo": "Quixom",
+   "detalle": "Producto con publicidad irregular de Laboratorios Quimpharma.",
+   "match": [
+    "quixom"
+   ],
+   "lotes": [],
+   "f": "235948/alerta_quixom_para_publicar_20170630.pdf"
+  },
+  {
+   "fecha": "2017-06-30",
+   "cat": "suplementos",
+   "tipo": "sin registro",
+   "titulo": "Productos Avitia (Cobrax, Rox, Tralix y otros)",
+   "detalle": "Productos con supuestas propiedades terapéuticas sin autorización.",
+   "match": [
+    "avitia"
+   ],
+   "lotes": [],
+   "f": "235970/alerta_Avitia.pdf"
+  },
+  {
+   "fecha": "2016-08-29",
+   "cat": "suplementos",
+   "tipo": "sin registro",
+   "titulo": "Inulina de Maguey vendida como \"producto milagro\"",
+   "detalle": "Se vende por internet y teléfono con supuestas propiedades curativas.",
+   "match": [
+    "inulina de maguey"
+   ],
+   "lotes": [],
+   "f": "130723/26_Alerta_sanitaria_INULINA_DE_MAGUEY_29082016.pdf"
+  },
+  {
+   "fecha": "2016-06-23",
+   "cat": "suplementos",
+   "tipo": "sin registro",
+   "titulo": "Productos con semilla de Brasil para bajar de peso",
+   "detalle": "Productos para bajar de peso a base de semilla de Brasil.",
+   "match": [
+    "semilla de brasil"
+   ],
+   "lotes": [],
+   "f": "130724/25_Alerta_sanitaria_SEMILLA_DE_BRASIL_23062016.pdf"
+  },
+  {
+   "fecha": "2016-03-01",
+   "cat": "suplementos",
+   "tipo": "sin registro",
+   "titulo": "Novodalin B17",
+   "detalle": "Supuesto producto naturista contra el cáncer vendido por internet.",
+   "match": [
+    "novodalin"
+   ],
+   "lotes": [],
+   "f": "130720/22_Alerta_sanitaria_NOVODALIN_B17_01032016.pdf"
+  },
+  {
+   "fecha": "2016-02-03",
+   "cat": "suplementos",
+   "tipo": "sin registro",
+   "titulo": "Sistema Ketopia (KetonX, DoughBites, FIXX)",
+   "detalle": "Promete bajar medio kilo a un kilo diario por cetosis.",
+   "match": [
+    "ketonx",
+    "doughbites"
+   ],
+   "lotes": [],
+   "f": "130719/21_Alerta_sanitaria_KETOPIA_03022016.pdf"
+  },
+  {
+   "fecha": "2016-01-12",
+   "cat": "suplementos",
+   "tipo": "sin registro",
+   "titulo": "Herbal Sex Pill, Golden Root Complex y Seduce Me con sildenafil",
+   "detalle": "Se venden como naturales pero contienen sildenafil sin declarar.",
+   "match": [
+    "herbal sex pill",
+    "golden root complex",
+    "seduce me"
+   ],
+   "lotes": [],
+   "f": "130718/20_Alerta_Sanitaria__PRODUCTOS_POTENCIA_SEXUAL_CON_SIDENAFIL_12012016.pdf"
+  },
+  {
+   "fecha": "2015-12-28",
+   "cat": "suplementos",
+   "tipo": "sin registro",
+   "titulo": "Focus X",
+   "detalle": "Producto sin autorización sanitaria.",
+   "match": [
+    "focus x"
+   ],
+   "lotes": [],
+   "f": "130742/18_Alerta_sanitaria_FOCUS_X_28122015.pdf"
+  },
+  {
+   "fecha": "2015-11-26",
+   "cat": "suplementos",
+   "tipo": "sin registro",
+   "titulo": "Diabestevia",
+   "detalle": "Se anuncia como tratamiento para la diabetes sin sustento.",
+   "match": [
+    "diabestevia"
+   ],
+   "lotes": [],
+   "f": "130741/17_Alerta_sanitaria_DIABESTEVIA_26112015.pdf"
+  },
+  {
+   "fecha": "2015-02-19",
+   "cat": "suplementos",
+   "tipo": "sin registro",
+   "titulo": "\"Fructano de Agave\" como suplemento",
+   "detalle": "Se le atribuyen propiedades terapéuticas sin sustento.",
+   "match": [
+    "fructano de agave"
+   ],
+   "lotes": [],
+   "f": "130737/13_Alerta_sanitaria_PRODUCTO_FRUCTANO_DE_AGAVE_19022015.pdf"
+  },
+  {
+   "fecha": "2014-12-19",
+   "cat": "suplementos",
+   "tipo": "sin registro",
+   "titulo": "Productos Solanum: Energy 220 V, MV-Flex, Fussion",
+   "detalle": "Se anuncian con beneficios terapéuticos sin autorización.",
+   "match": [
+    "energy 220",
+    "mv flex",
+    "fussion condon"
+   ],
+   "lotes": [],
+   "f": "130733/9_Alerta_sanitaria_PRODUCTOS_SOLANUM_19122014.pdf"
+  },
+  {
+   "fecha": "2014-12-02",
+   "cat": "suplementos",
+   "tipo": "sin registro",
+   "titulo": "Thermatrim",
+   "detalle": "Para bajar de peso, sin registro sanitario.",
+   "match": [
+    "thermatrim"
+   ],
+   "lotes": [],
+   "f": "130732/8_Alerta_sanitaria_THERMATRIM_02122014.pdf"
+  },
+  {
+   "fecha": "2014-06-16",
+   "cat": "suplementos",
+   "tipo": "sin registro",
+   "titulo": "Phen 375",
+   "detalle": "Producto para bajar de peso sin autorización.",
+   "match": [
+    "phen 375"
+   ],
+   "lotes": [],
+   "f": "130730/6_Alerta_sanitaria_PHEN_375_16062014.pdf"
+  },
+  {
+   "fecha": "2014-04-22",
+   "cat": "suplementos",
+   "tipo": "sin registro",
+   "titulo": "Magna Pene RX",
+   "detalle": "Se anuncia como suplemento para fines sexuales sin sustento.",
+   "match": [
+    "magna pene"
+   ],
+   "lotes": [],
+   "f": "130729/5_Alerta_sanitaria_MAGNA_PENE_RX_22042014.pdf"
+  },
+  {
+   "fecha": "2014-04-21",
+   "cat": "suplementos",
+   "tipo": "sin registro",
+   "titulo": "Redufat",
+   "detalle": "Se vende como suplemento para perder peso.",
+   "match": [
+    "redufat"
+   ],
+   "lotes": [],
+   "f": "130728/4_Alerta_sanitaria_REDUFAT_21042016.pdf"
+  },
+  {
+   "fecha": "2014-01-17",
+   "cat": "suplementos",
+   "tipo": "sin registro",
+   "titulo": "Slim Beauty USA: Magic Slim y otros",
+   "detalle": "Productos para bajar de peso sin autorización.",
+   "match": [
+    "magic slim",
+    "slim beauty"
+   ],
+   "lotes": [],
+   "f": "130727/3_Alerta_sanitaria_PRODUCTOS_SLIM_BEAUTY_USA_17012014.pdf"
+  },
+  {
+   "fecha": "2014-01-16",
+   "cat": "suplementos",
+   "tipo": "sin registro",
+   "titulo": "QM69",
+   "detalle": "Se ostenta como medicamento sin serlo.",
+   "match": [
+    "qm69"
+   ],
+   "lotes": [],
+   "f": "130726/2_Alerta_sanitaria_QM69_16012014.pdf"
+  },
+  {
+   "fecha": "2013-11-05",
+   "cat": "suplementos",
+   "tipo": "sin registro",
+   "titulo": "Oxy Elite Pro y Versa-1",
+   "detalle": "Suplementos asociados a daño hepático.",
+   "match": [
+    "oxy elite",
+    "versa 1"
+   ],
+   "lotes": [],
+   "f": "130725/1_Alerta_sanitaria_OXY_ELITE_PRO_Y_VERSA-105112013.pdf"
+  },
+  {
+   "fecha": "2016-08-05",
+   "cat": "bebidas",
+   "tipo": "sin registro",
+   "titulo": "Absinth Rustic y Absinth Drácula (70 y 80% Alc. Vol.)",
+   "detalle": "Contenido alcohólico por encima de la norma y etiquetado irregular.",
+   "match": [
+    "absinth rustic",
+    "absinth dracula"
+   ],
+   "lotes": [],
+   "f": "127524/1_Alerta_sanitaria_Bebidas_que_se_ostentan_como_alcoh_licas_05082016.pdf"
+  },
+  {
+   "fecha": "2016-03-22",
+   "cat": "alimentos",
+   "tipo": "regularizada",
+   "titulo": "Pistaches Wonderful con Salmonella (regularizada en 2017)",
+   "detalle": "Lote importado de EE. UU.; COFEPRIS confirmó ausencia de Salmonella en 2017.",
+   "match": [],
+   "upc": [
+    "014113910187"
+   ],
+   "lotes": [
+    "10/26/2016-1509123259601"
+   ],
+   "f": "211093/Alerta_Sanitaria_Pistaches_Regularizada_120417.pdf"
+  }
+ ]
+}

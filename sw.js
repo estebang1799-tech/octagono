@@ -1,7 +1,7 @@
 // Offline support: app files are cached on install; product shards are cached the first time they're used.
-const VERSION = "octagono-1.0.1";
+const VERSION = "octagono-1.1.0";
 const SHELL = ["./", "index.html", "styles.css", "app.js", "logic.js", "vendor/zxing.min.js", "manifest.webmanifest",
-  "fonts/anton.woff2", "fonts/worksans.woff2", "icons/icon-192.png", "icons/icon-512.png", "db/index.json"];
+  "fonts/anton.woff2", "fonts/worksans.woff2", "icons/icon-192.png", "icons/icon-512.png", "db/index.json", "db/cofepris.json"];
 
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(VERSION).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));

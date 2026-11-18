@@ -46,6 +46,18 @@
     <div id="cmp-table"></div>
   </section>
 
+  <section id="view-alert" hidden>
+    <h2 class="h2">Alertas COFEPRIS</h2>
+    <p class="small muted" style="margin:0">Alertas sanitarias oficiales de alimentos, bebidas alcohólicas y suplementos. Cuando escaneas un producto con alerta, la app te avisa y te dice qué lotes revisar.</p>
+    <div id="alert-mine"></div>
+    <div class="chips" id="alert-cats" role="group" aria-label="Filtrar por categoría">
+      <button data-cat="" aria-pressed="true">Todas</button><button data-cat="alimentos" aria-pressed="false">Alimentos</button><button data-cat="bebidas" aria-pressed="false">Bebidas</button><button data-cat="suplementos" aria-pressed="false">Suplementos</button>
+    </div>
+    <input class="field" id="alert-q" type="search" placeholder="Buscar producto, marca o lote" aria-label="Buscar alertas">
+    <div id="alert-list"></div>
+    <p class="small muted" id="alert-src" style="margin:0"></p>
+  </section>
+
   <section id="view-hist" hidden>
     <div class="stats" id="stats"></div>
     <input class="field" id="q" type="search" placeholder="Buscar en tu historial" aria-label="Buscar en historial">
@@ -84,6 +96,7 @@
 <nav class="tabbar" role="tablist">
   <button role="tab" id="tab-scan" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 7V3h4M17 3h4v4M21 17v4h-4M7 21H3v-4M7 8v8M10 8v8M13 8v8M17 8v8"/></svg>Escanear</button>
   <button role="tab" id="tab-cmp" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4h6v16H4zM14 9h6v11h-6z"/></svg>Comparar</button>
+  <button role="tab" id="tab-alert" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3 2 20h20L12 3zM12 10v4M12 17v.5"/></svg>Alertas</button>
   <button role="tab" id="tab-hist" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Historial</button>
 </nav>
 

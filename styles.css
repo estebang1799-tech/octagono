@@ -119,6 +119,27 @@ td.best{font-weight:800;background:color-mix(in srgb,var(--tag) 35%,transparent)
 .hitem .t span{font-size:12px;color:var(--muted)}
 .hitem .s{font-family:var(--f-num);font-size:28px;min-width:40px;text-align:right}
 .foot{font-size:12px;color:var(--muted);margin-top:8px}
+/* COFEPRIS alerts */
+.warn{border:3px solid var(--bad);padding:12px;display:flex;flex-direction:column;gap:6px}
+.warn b.t{font-size:15px;line-height:1.3}
+.warn .k{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--bad)}
+.warn p{margin:0;font-size:13px}
+.warn a{color:var(--fg);font-weight:600}
+.lots{font-size:13px;font-variant-numeric:tabular-nums;letter-spacing:.03em;overflow-wrap:anywhere}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{border:2px solid var(--fg);background:var(--bg);padding:6px 10px;font-size:13px;font-weight:600}
+.chips button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
+.aitem{display:flex;flex-direction:column;gap:4px;padding:12px 0;border-bottom:1px solid var(--line)}
+.aitem .meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.pill{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;padding:2px 6px;border:1.5px solid currentColor}
+.pill.retiro,.pill.falsificado,.pill.robado{color:var(--bad)}
+.pill.sin-registro{color:var(--warn)}
+.pill.regularizada{color:var(--good)}
+.aitem b{font-size:15px;line-height:1.3}
+.aitem p{margin:0;font-size:13px;color:var(--muted)}
+.aitem a{font-size:13px;color:var(--fg)}
+.flag{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.08em;color:#fff;background:var(--bad);padding:1px 5px;margin-left:6px;vertical-align:2px}
+.tabbar button{font-size:11px}
 /* camera */
 .cam{position:fixed;inset:0;z-index:20;background:#000;display:flex;flex-direction:column}
 .cam video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}

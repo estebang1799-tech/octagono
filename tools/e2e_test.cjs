@@ -60,6 +60,20 @@ const ok = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) process
   ok((await p.$$("#cmp-table tr")).length > 5, "compare table shows two products");
   await p.screenshot({ path: path.join(out, "3-comparar.png"), fullPage: true });
 
+  // 5b. COFEPRIS: a product named in an alert shows the warning; the Alerts tab lists everything
+  const pedia = await p.evaluate(async () => (await (await fetch("db/index.json")).json()).rows.find(r => /pediasure/i.test(r[1]))?.[0]);
+  await p.click("#tab-scan");
+  await p.evaluate(c => { window.__octagono.handleCode(c); }, pedia);
+  await p.waitForSelector(".res .warn", { timeout: 10000 }).catch(() => {});
+  ok(await p.isVisible("text=PediaSure chocolate alterado"), `COFEPRIS warning on ${pedia}`);
+  await p.screenshot({ path: path.join(out, "6-alerta-producto.png"), fullPage: true });
+  await p.click("#tab-alert");
+  ok((await p.$$(".aitem")).length >= 40, "alerts tab lists COFEPRIS alerts");
+  ok(await p.isVisible("#alert-mine .warn"), "alerts tab flags products in history");
+  await p.click('#alert-cats [data-cat="bebidas"]');
+  ok((await p.$$(".aitem")).length === 3, "category filter works");
+  await p.screenshot({ path: path.join(out, "7-alertas.png"), fullPage: false });
+
   // 6. camera overlay opens and closes
   await p.click("#tab-scan"); await p.click("#scan-btn");
   await p.waitForSelector("#cam:not([hidden])", { timeout: 5000 }).catch(() => {});
