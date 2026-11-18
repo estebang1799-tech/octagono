@@ -3,3 +3,4 @@ tools/off_dump.log
 node_modules/
 *.zip
 tools/cofepris_pdfs/
+tools/off_latin.log

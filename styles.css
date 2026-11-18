@@ -119,6 +119,16 @@ td.best{font-weight:800;background:color-mix(in srgb,var(--tag) 35%,transparent)
 .hitem .t span{font-size:12px;color:var(--muted)}
 .hitem .s{font-family:var(--f-num);font-size:28px;min-width:40px;text-align:right}
 .foot{font-size:12px;color:var(--muted);margin-top:8px}
+/* ingredient breakdown */
+.ingr{list-style:none;margin:0;padding:0;counter-reset:i}
+.ingr li{counter-increment:i;padding:9px 0 9px 30px;border-bottom:1px solid var(--line);position:relative}
+.ingr li::before{content:counter(i);position:absolute;left:0;top:9px;width:22px;font-size:12px;font-weight:700;color:var(--muted);text-align:right}
+.ingr li.ojo{box-shadow:inset 3px 0 0 var(--warn)}
+.ingr .ih{display:flex;flex-wrap:wrap;gap:6px;align-items:baseline}
+.ingr .ih b{font-size:14px;font-weight:700;overflow-wrap:anywhere}
+.ingr .kind{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);border:1px solid var(--line);padding:1px 5px}
+.ingr .lim{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--warn);border:1.5px solid var(--warn);padding:1px 5px}
+.ingr p{margin:2px 0 0;font-size:13px;color:var(--muted)}
 /* COFEPRIS alerts */
 .warn{border:3px solid var(--bad);padding:12px;display:flex;flex-direction:column;gap:6px}
 .warn b.t{font-size:15px;line-height:1.3}

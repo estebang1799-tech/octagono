@@ -42,9 +42,14 @@ export function findAdditives(ingr, extra) {
 /** NOM-051 phase 3 warning seals (per 100 g / 100 ml) plus Octágono's own 0–100 score. */
 export function compute(p) {
   const liquid = p.tipo === "liquido";
-  const kcal = num(p.kcal), sug = num(p.azucares_anadidos) ?? num(p.azucares_totales),
+  // Added sugars decide the seal. A declared 0 while the ingredients list sugar is usually a data
+  // error in Open Food Facts, so total sugars are used then.
+  const added = num(p.azucares_anadidos), total = num(p.azucares_totales);
+  const addedLooksWrong = added === 0 && p.tiene_azucar_anadido === true && total > 0 && p.fuente === "off";
+  const sug = added != null && !addedLooksWrong ? added : total;
+  const kcal = num(p.kcal),
     sat = num(p.grasa_saturada), trans = num(p.grasa_trans), na = num(p.sodio_mg), fib = num(p.fibra), prot = num(p.proteina);
-  const sugUsesTotal = num(p.azucares_anadidos) == null && num(p.azucares_totales) != null;
+  const sugUsesTotal = (added == null || addedLooksWrong) && total != null;
   // sugar, saturated fat and sodium drive most seals: without them a score would look better than the product is
   const missingKey = [sug, sat, na].filter(v => v == null).length;
   const incomplete = kcal == null || missingKey >= 2;
@@ -63,6 +68,12 @@ export function compute(p) {
     if (liquid && (kcal ?? 0) < 1) { if (na >= 45) add("sodio", na / 45); }
     else if ((kcal && na / kcal >= 1) || na >= 300) add("sodio", Math.max(kcal ? na / kcal : 0, na / 300));
   }
+  // Seals printed on the package (read from a photo) are the official ones: add any the numbers missed.
+  const printed = [];
+  for (const s of p.sellos_impresos || []) {
+    const name = { calorias: "calorías", azucares: "azúcares", "grasas saturadas": "grasas saturadas", "grasas trans": "grasas trans", sodio: "sodio" }[norm(s)];
+    if (name && !seals.includes(name)) { add(name, 1); printed.push(name); }
+  }
   const legends = [];
   if (p.edulcorantes) legends.push("Contiene edulcorantes, no recomendable en niños");
   if (p.cafeina) legends.push("Contiene cafeína, evitar en niños");
@@ -79,15 +90,32 @@ export function compute(p) {
   if (ap) { s -= ap; factors.push(`−${ap} aditivos de riesgo`); }
   if (fib != null && fib >= 6) { s += 6; factors.push("+6 alto en fibra"); } else if (fib != null && fib >= 3) { s += 3; factors.push("+3 fuente de fibra"); }
   if (prot != null && prot >= 10) { s += 4; factors.push("+4 alto en proteína"); }
-  return { seals, legends, adds, factors, sugUsesTotal, incomplete, partial, score: incomplete ? null : Math.max(0, Math.min(100, Math.round(s))) };
+  return { seals, printed, legends, adds, factors, sugUsesTotal, incomplete, partial, score: incomplete ? null : Math.max(0, Math.min(100, Math.round(s))) };
 }
 
 /* ---------- Open Food Facts → product ---------- */
-export const OFF_FIELDS = ["code", "product_name_es", "product_name", "brands", "quantity", "nutriments",
-  "ingredients_text_es", "ingredients_text", "additives_tags", "categories_tags"].join(",");
+export const OFF_FIELDS = ["code", "product_name_es", "product_name_en", "generic_name_es", "product_name", "brands", "quantity", "nutriments",
+  "ingredients_text_es", "ingredients_text_en", "ingredients_text", "additives_tags", "categories_tags"].join(",");
 const r1 = v => v == null || v === "" || !Number.isFinite(+v) ? null : Math.round(+v * 10) / 10;
-const SUGAR = /az[uú]car|jarabe|sacarosa|glucosa|fructosa|dextrosa|miel|piloncillo|maltodextrina|melaza|concentrado de jugo/i;
-const SALT = /\bsal\b|sal yodada|sodio|glutamato|salmuera/i;
+// Sugar and salt words in the languages Open Food Facts lists Mexican products in (es, en, fr, pt).
+const SUGAR = /az[uú]car|a[cç][uú]car|jarabe|sacarosa|glucosa|fructosa|dextrosa|miel|piloncillo|maltodextrina|melaza|concentrado de jugo|\bsugars?\b|syrup|sucrose|glucose|fructose|dextrose|\bhoney\b|molasses|maltodextrin|juice concentrate|\bsucre\b|sirop|xarope/i;
+const SALT = /\bsal\b|sal yodada|sodio|glutamato|salmuera|\bsalt\b|sodium|glutamate|brine|\bsel\b|\bs[oó]dio\b/i;
+const NON_LATIN = /[Ͱ-ϿЀ-ӿ֐-ۿ฀-๿぀-ヿ一-鿿가-힯]/;
+/** True when a text is in another alphabet (Cyrillic, Greek, Arabic, Asian...). Spanish and English are both fine. */
+export const foreignScript = text => !!text && NON_LATIN.test(text);
+/** First text that is in Spanish or English, in the order given. */
+const latin = (...texts) => texts.map(clean).find(t => t && !foreignScript(t)) || null;
+/** Whether ingredients show added sugar / salt; unknown (no text, or another alphabet) counts as yes. */
+const hasAdded = (re, ingr) => !ingr || NON_LATIN.test(ingr) ? true : re.test(ingr);
+/** Re-derive the added-sugar/salt flags of an Open Food Facts product saved by an older version. */
+export function refreshOffFlags(p) {
+  if (!p || p.fuente !== "off") return p;
+  if (foreignScript(p.ingredientes)) p.ingredientes = null;
+  if (foreignScript(p.nombre) && p.codigo_barras) p.nombre = "Producto " + p.codigo_barras;
+  p.tiene_azucar_anadido = (+p.azucares_anadidos > 0) || hasAdded(SUGAR, p.ingredientes);
+  p.tiene_sodio_anadido = hasAdded(SALT, p.ingredientes);
+  return p;
+}
 const SWEET = /sucralosa|aspartam|acesulfam|sacarina|stevia|estevia|esteviol|ciclamato|neotamo|advantamo|fruta del monje/i;
 const SWEET_E = /^(e950|e951|e952|e954|e955|e960|e961|e962|e969)/;
 const CAF = /cafe[ií]na|\bcaf[eé]\b|guaran[aá]|t[eé] (negro|verde)|yerba mate/i;
@@ -95,10 +123,11 @@ const clean = s => s == null ? null : String(s).replace(/�/g, "").replace(/_/g
 
 export function fromOFF(p) {
   const code = normCode(p.code);
-  const name = clean(p.product_name_es) || clean(p.product_name);
+  // Spanish first, then English; texts in other alphabets are dropped
+  const name = latin(p.product_name_es, p.product_name_en, p.generic_name_es, p.product_name);
   if (!code || code.length < 8 || !name) return null;
   const n = p.nutriments || {};
-  const ingr = clean(p.ingredients_text_es) || clean(p.ingredients_text);
+  const ingr = latin(p.ingredients_text_es, p.ingredients_text_en, p.ingredients_text);
   const adds = (p.additives_tags || []).map(t => t.replace(/^en:/, "")).filter(Boolean);
   const cats = p.categories_tags || [];
   const qty = clean(p.quantity);
@@ -114,8 +143,9 @@ export function fromOFF(p) {
     ingredientes: ingr ? ingr.slice(0, 1200) : null, aditivos: adds,
     edulcorantes: !!((ingr && SWEET.test(ingr)) || adds.some(a => SWEET_E.test(a))),
     cafeina: !!(ingr && CAF.test(ingr)),
-    tiene_azucar_anadido: n["added-sugars_100g"] != null && n["added-sugars_100g"] !== "" ? +n["added-sugars_100g"] > 0 : ingr ? SUGAR.test(ingr) : true,
-    tiene_sodio_anadido: ingr ? SALT.test(ingr) : true,
+    // a declared added-sugar value above 0 settles it; otherwise trust the ingredient list
+    tiene_azucar_anadido: (+n["added-sugars_100g"] > 0) || hasAdded(SUGAR, ingr),
+    tiene_sodio_anadido: hasAdded(SALT, ingr),
     cat: cats.length ? cats[cats.length - 1].replace(/^[a-z]{2}:/, "") : null,
     fuente: "off",
   };

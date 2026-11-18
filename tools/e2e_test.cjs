@@ -19,6 +19,8 @@ const ok = (c, m) => { console.log((c ? "PASS " : "FAIL ") + m); if (!c) process
   await p.goto(URL);
   await p.waitForFunction(() => /productos/.test(document.querySelector("#dbinfo").textContent), null, { timeout: 10000 });
   ok(await p.isVisible("text=Ejemplo. Escanea un producto"), "example result shown on first run");
+  ok((await p.$$(".ingr li")).length >= 8, "ingredient breakdown lists each ingredient");
+  ok(await p.isVisible(".ingr li.ojo >> text=Azúcar de mesa"), "breakdown explains sugar and flags it");
   await p.screenshot({ path: path.join(out, "1-inicio.png"), fullPage: false });
 
   // 1. code from the bundled database

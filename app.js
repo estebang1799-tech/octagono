@@ -1,6 +1,7 @@
-import { num, norm, normCode, compute, fromOFF, unpack, OFF_FIELDS } from "./logic.js";
+import { num, norm, normCode, compute, fromOFF, unpack, refreshOffFlags, OFF_FIELDS } from "./logic.js";
+import { KINDS, splitIngredients, explainLocal } from "./ingredients.js";
 
-const VERSION = "1.3.1";
+const VERSION = "1.4.0";
 const SDK_URL = "https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@1.4.0/+esm";
 // Haiku 5.5: the user chose the fastest, cheapest model for reading labels (~USD 0.001 per label).
 const MODEL = "claude-haiku-5-5";
@@ -29,6 +30,8 @@ const idb = (() => {
 })();
 async function loadHistory() {
   try { history = (await idb.all()).sort((a, b) => b.ts - a.ts); } catch { history = []; }
+  // products saved by older versions: re-derive flags and score with the current rules
+  for (const h of history) { if (!h.product) continue; refreshOffFlags(h.product); const r = compute(h.product); h.score = r.score; h.seals = r.seals; }
   refreshViews();
 }
 const findKnown = code => code ? history.find(h => h.barcode === code) : null;
@@ -187,6 +190,7 @@ const LABEL_SCHEMA = {
     kcal: N, azucares_totales: N, azucares_anadidos: N, grasa_saturada: N, grasa_trans: N, sodio_mg: N, fibra: N, proteina: N,
     ingredientes: S, aditivos: { type: "array", items: { type: "string" } },
     edulcorantes: B, cafeina: B, tiene_azucar_anadido: B, tiene_sodio_anadido: B,
+    sellos_impresos: { type: "array", items: { type: "string", enum: ["calorias", "azucares", "grasas saturadas", "grasas trans", "sodio"] } },
     legible: B, nota: S, consejo: { type: "string" },
   },
 };
@@ -200,7 +204,8 @@ const LABEL_PROMPT = `These photos show a food or drink sold in Mexico: its nutr
 - codigo_barras is the digits under the barcode, only if all of them are readable.
 - Set legible to false if the photos aren't of a food or drink label, and explain in nota anything you couldn't read.
 - consejo is one short sentence in Spanish suggesting what kind of healthier product to choose instead at a Mexican supermarket. Keep it generic; don't name brands or invent figures.
-- Write nombre, nota and ingredientes in Spanish, as printed on the label.`;
+- sellos_impresos lists the black octagon warning seals printed on the package ("EXCESO CALORÍAS", "EXCESO AZÚCARES", "EXCESO GRASAS SATURADAS", "EXCESO GRASAS TRANS", "EXCESO SODIO"). Include only seals you can see in the photos; leave it empty if the front of the package isn't shown.
+- Write nombre, nota and ingredientes in Spanish when the label has Spanish; otherwise copy them as printed.`;
 
 const apiKey = () => store.get("octagono.apikey");
 let sdkPromise = null;
@@ -245,6 +250,40 @@ async function readLabel(blobs, signal) {
   const parsed = parseJSONLoose(text);
   if (!parsed) throw { code: "invalid_json" };
   return parsed;
+}
+/* Ingredient breakdown with Claude (cached on the product, so each product is explained once) */
+const KIND_ENUM = Object.keys(KINDS);
+const INGR_SCHEMA = {
+  type: "object", additionalProperties: false, required: ["items"],
+  properties: { items: { type: "array", items: { type: "object", additionalProperties: false, required: ["ingrediente", "tipo", "que_es", "ojo"],
+    properties: { ingrediente: { type: "string" }, tipo: { type: "string", enum: KIND_ENUM }, que_es: { type: "string" }, ojo: { type: "boolean" } } } } },
+};
+async function explainIngredientsAI(text) {
+  const key = apiKey(); if (!key) return null;
+  sdkPromise ??= import(SDK_URL);
+  const Anthropic = (await sdkPromise).default;
+  const client = new Anthropic({ apiKey: key, dangerouslyAllowBrowser: true });
+  const prompt = `Below is the ingredient list of a packaged food sold in Mexico. Explain each ingredient for an ordinary shopper.
+
+For every ingredient, in the order listed (group sub-ingredients in parentheses with their parent, up to 30 items):
+- ingrediente: its name in Spanish (translate it if the list is in another language).
+- tipo: one of ${KIND_ENUM.join(", ")} (azucar = sugars and syrups, aditivo = preservatives, colorings, emulsifiers, thickeners and similar).
+- que_es: one or two short sentences in plain Spanish saying what it is and why it's in the product. Mention a health concern only when it is well established.
+- ojo: true for things worth limiting (added sugars, artificial sweeteners, palm or hydrogenated fats, lots of salt, additives with known concerns); false otherwise.
+
+Ingredient list:
+${text}`;
+  const req = { model: MODEL, max_tokens: 4000, messages: [{ role: "user", content: prompt }] };
+  let resp;
+  try { resp = await client.messages.create({ ...req, output_config: { effort: "low", format: { type: "json_schema", schema: INGR_SCHEMA } } }); }
+  catch (e) {
+    if (!(e instanceof Anthropic.BadRequestError)) throw e;
+    resp = await client.messages.create({ ...req, output_config: { effort: "low" },
+      messages: [{ role: "user", content: prompt + '\n\nReply with only a JSON object: {"items": [{"ingrediente", "tipo", "que_es", "ojo"}]}' }] });
+  }
+  if (resp.stop_reason === "refusal") return null;
+  const j = parseJSONLoose(resp.content.filter(b => b.type === "text").map(b => b.text).join(""));
+  return Array.isArray(j?.items) ? j.items.filter(i => i && i.ingrediente) : null;
 }
 function parseJSONLoose(text) {
   try { return JSON.parse(text); } catch {}
@@ -388,9 +427,39 @@ $("#alert-cats").addEventListener("click", e => {
 });
 $("#alert-q").addEventListener("input", renderAlerts);
 
+/* Ingredient breakdown: Claude's explanation when available, otherwise the offline dictionary */
+function ingredientsHTML(p) {
+  const ai = Array.isArray(p.ingredientes_detalle) && p.ingredientes_detalle.length;
+  const items = ai ? p.ingredientes_detalle : splitIngredients(p.ingredientes).map(name => ({ ingrediente: name, ...(explainLocal(name) || {}) }));
+  const note = ai ? "Explicado con IA." : current?.explaining ? "Explicando cada ingrediente con IA…"
+    : apiKey() ? (current?.explainFailed ? "No se pudo explicar con IA; esta es la explicación básica." : "") : "Explicación básica. Con tu clave de la API se explica cada ingrediente a detalle.";
+  const limit = items.filter(i => i.ojo).length;
+  return `<div>
+    <div class="label" style="margin-bottom:2px">Ingredientes, uno por uno (${items.length})</div>
+    ${limit ? `<p class="small" style="margin:0 0 4px"><b>${limit}</b> ${limit === 1 ? "conviene" : "convienen"} limitar.</p>` : ""}
+    <ol class="ingr">${items.map(i => `<li class="${i.ojo ? "ojo" : ""}">
+      <div class="ih"><b>${esc(i.ingrediente)}</b>${i.tipo ? `<span class="kind">${esc(KINDS[i.tipo] || i.tipo)}</span>` : ""}${i.ojo ? `<span class="lim">Limitar</span>` : ""}</div>
+      <p>${i.que_es ? esc(i.que_es) : `<span class="muted">Sin explicación en el diccionario sin conexión.</span>`}</p></li>`).join("")}</ol>
+    ${note ? `<p class="small muted" style="margin:6px 0 0">${note}</p>` : ""}
+    <details style="margin-top:8px"><summary>Lista original de la etiqueta</summary><p>${esc(p.ingredientes)}</p></details>
+  </div>`;
+}
+function maybeExplainIngredients() {
+  const c = current, p = c?.product;
+  if (!p || c.example || c.editing || c.explaining || c.explainFailed || !p.ingredientes || p.ingredientes_detalle || !apiKey() || !navigator.onLine) return;
+  c.explaining = true;
+  explainIngredientsAI(p.ingredientes).then(async items => {
+    c.explaining = false;
+    if (items?.length) { p.ingredientes_detalle = items; if (!c.example) c.docId = await save(p, c.thumb, c.docId); }
+    else c.explainFailed = true;
+  }).catch(() => { c.explaining = false; c.explainFailed = true; })
+    .finally(() => { if (current === c) renderResult(); });
+}
+
 function renderResult() {
   const box = $("#result");
   if (!current) { box.innerHTML = ""; return; }
+  maybeExplainIngredients();
   const p = current.product, r = compute(p), [vw, vc] = verdict(r.score), unit = p.tipo === "liquido" ? "100 ml" : "100 g", ed = current.editing;
   const band = r.score == null ? -1 : r.score >= 75 ? 3 : r.score >= 50 ? 2 : r.score >= 25 ? 1 : 0;
   const alts = ed || current.example || r.incomplete ? [] : alternatives(p);
@@ -419,7 +488,9 @@ function renderResult() {
       <div class="label">Sellos</div>
       ${r.seals.length ? `<div class="seals">${r.seals.map(s => `<div class="seal">${sealSVG(s)}</div>`).join("")}</div>` : r.incomplete ? `<div class="muted small">Sin datos suficientes.</div>` : `<div style="color:var(--good);font-weight:700">Sin sellos de exceso.</div>`}
       ${r.legends.map(l => `<div class="legend">${esc(l)}</div>`).join("")}
-      ${r.sugUsesTotal && !r.incomplete ? `<p class="small muted" style="margin:0">Sin dato de azúcares añadidos; se usaron los totales.</p>` : ""}
+      ${r.sugUsesTotal && !r.incomplete ? `<p class="small muted" style="margin:0">Sin dato confiable de azúcares añadidos; se usaron los azúcares totales.</p>` : ""}
+      ${r.printed.length ? `<p class="small muted" style="margin:0">Incluye ${r.printed.length === 1 ? "un sello impreso" : "sellos impresos"} en el empaque que los datos de la tabla no alcanzaban a marcar.</p>` : ""}
+      ${!r.incomplete && !current.example && p.fuente === "off" ? `<p class="small muted" style="margin:0">Sellos calculados con datos de Open Food Facts. Si no coinciden con tu empaque, toca “Corregir datos” o toma una foto del frente.</p>` : ""}
     </div>
     ${alts.length ? `<div><div class="label" style="margin-bottom:2px">Mejores opciones parecidas</div>${alts.map(a => { const [, c] = verdict(a[3]);
       return `<button class="alt" data-code="${esc(a[0])}"><span style="min-width:0"><b>${esc(a[1])}</b><span>${esc(a[2] || "")}${a[2] ? " · " : ""}${a[4]} sellos</span></span><span class="n" style="color:${c}">${a[3]}</span></button>`; }).join("")}</div>` : ""}
@@ -439,7 +510,7 @@ function renderResult() {
       <div class="label" style="margin-bottom:2px">Aditivos de riesgo (${r.adds.length})</div>
       ${r.adds.length ? r.adds.map(a => `<div class="add"><div style="min-width:0"><b>${esc(a.n)}</b><p>${esc(a.w)}</p></div><span class="risk" style="color:${riskColor(a.r)}">${a.r}</span></div>`).join("") : `<p class="small muted" style="margin:0">${p.ingredientes ? "Ninguno de la lista vigilada." : "Sin lista de ingredientes."}</p>`}
     </div>
-    ${p.ingredientes ? `<details><summary>Ingredientes</summary><p>${esc(p.ingredientes)}</p></details>` : ""}
+    ${p.ingredientes ? ingredientsHTML(p) : ""}
     <details><summary>Cómo se calculó</summary><ul><li>Base 100</li>${r.factors.map(f => `<li>${esc(f)}</li>`).join("")}</ul></details>
     ${current.example ? "" : `<button class="btn line" id="to-cmp" style="width:100%">Comparar con otro producto</button>`}
   </article>`;
@@ -447,7 +518,11 @@ function renderResult() {
   if (ed) $("#apply").onclick = async () => {
     for (const [k] of NUTR) { const v = $("#in-" + k).value.trim(); p[k] = v === "" ? null : num(v); }
     p.tipo = $("#in-tipo").value; p.edulcorantes = $("#in-edul").checked; p.cafeina = $("#in-caf").checked;
-    if (current.manual) { p.nombre = $("#in-name").value.trim() || "Producto"; p.ingredientes = $("#in-ingr").value.trim() || null; }
+    if (current.manual) {
+      const ingr = $("#in-ingr").value.trim() || null;
+      if (ingr !== p.ingredientes) { p.ingredientes = ingr; delete p.ingredientes_detalle; current.explainFailed = false; }
+      p.nombre = $("#in-name").value.trim() || "Producto";
+    }
     if (p.fuente !== "etiqueta") p.fuente = "usuario";
     current.editing = false; current.example = false; current.manual = false;
     current.docId = await save(p, current.thumb, current.docId); renderResult();
